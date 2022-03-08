@@ -41,8 +41,8 @@ class my_strategy1(bt.Strategy):
         # print('当前价格', self.data0.close[0])
         # print(siz)
         # print(self.order)
-        # if(self.order):
-        #     return
+        if(self.order):
+            return
         if (not self.position):
             # print(self.broker.getposition(self.data).size, '-0----0-')
             # print(self.ma[0], '15日均线')
@@ -56,14 +56,12 @@ class my_strategy1(bt.Strategy):
                 # print(self.position.size)
                 # print(cur_date, '当前是卖，价格是', cur_price)
                 # self.order = self.sell(size=size)
-                self.close()
+                self.order = self.close()
     # 交易记录日志（可省略，默认不输出结果）
 
     def log(self, txt, dt=None, doprint=False):
-        cur_date = self.data0.lines.datetime.date(0)
-        daad_date = datetime.strptime('2011-01-01', '%Y-%m-%d').date()
-        if cur_date > daad_date:
-            return
+        #         注意：在作弊模式下，notify_order中输出self.data0.datetime.datetime(0)并不是订单执行时间，而是次日。
+        # 正确的 获取订单执行时间order.executed.dt、获取订单创建时间order.created.dt
         if self.params.printlog or doprint:
             dt = dt or self.datas[0].datetime.date(0)
             print(f'{dt.isoformat()},{txt}')
@@ -103,7 +101,7 @@ class my_strategy1(bt.Strategy):
                  (self.params.period, self.broker.getvalue()), doprint=True)
 
 
-def get_data(code, start='2010-01-01', end='2020-03-31'):
+def get_data(code, start='2010-01-01', end='2022-02-31'):
     df = ts.get_k_data(code, autype='qfq', start=start, end=end)
     df.index = pd.to_datetime(df.date)
     df['openinterest'] = 0
@@ -114,8 +112,8 @@ def get_data(code, start='2010-01-01', end='2020-03-31'):
 dataframe = get_data('600519')
 
 # 回测期间
-start = datetime(2014, 3, 31)
-end = datetime(2020, 3, 31)
+start = datetime(2019, 3, 31)
+end = datetime(2021, 3, 31)
 # 加载数据
 data = bt.feeds.PandasData(dataname=dataframe, fromdate=start, todate=end)
 
@@ -124,9 +122,9 @@ cerebro = bt.Cerebro()
 # 将数据传入回测系统
 cerebro.adddata(data)
 # 将交易策略加载到回测系统中
-# cerebro.optstrategy(my_strategy1, period=range(3, 31), printlog=True)
+cerebro.optstrategy(my_strategy1, period=range(3, 6), printlog=True)
 
-cerebro.addstrategy(my_strategy1, printlog=True)
+# cerebro.addstrategy(my_strategy1, printlog=True)
 # 设置初始资本为10,000
 startcash = 200000
 cerebro.broker.setcash(startcash)
@@ -141,15 +139,15 @@ print(f'初始资金: {startcash}\n回测期间：{d1}:{d2}')
 # 运行回测系统
 cerebro.run()
 
-b = Bokeh(style='bar', plot_mode='single', scheme=Tradimo())
-cerebro.plot(b)
+# b = Bokeh(style='bar', plot_mode='single', scheme=Tradimo())
+# cerebro.plot(b)
 
 # cerebro.plot(style='candlestick')
 
 # 获取回测结束后的总资金
-portvalue = cerebro.broker.getvalue()
-pnl = portvalue - startcash
-# 打印结果
-print(f'净收益: {round(pnl,2)}')
-print(f'总资金: {round(portvalue,2)}')
-print(f'总收益率: {(round(pnl,2) * 100)/round(startcash,2)}%')
+# portvalue = cerebro.broker.getvalue()
+# pnl = portvalue - startcash
+# # 打印结果
+# print(f'净收益: {round(pnl,2)}')
+# print(f'总资金: {round(portvalue,2)}')
+# print(f'总收益率: {(round(pnl,2) * 100)/round(startcash,2)}%')

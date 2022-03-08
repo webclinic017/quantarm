@@ -47,10 +47,10 @@ if __name__ == "__main__":
     cerebro.adddata(data)
 
     # 策略优化
-    # cerebro.optstrategy(
-    #     MaCrossStrategy,
-    #     fast_length=range(1, 11, 5),
-    #     slow_length=range(25, 35, 5))
+    cerebro.optstrategy(
+        MaCrossStrategy,
+        fast_length=range(1, 11, 5),
+        slow_length=range(25, 35, 5))
 
     cerebro.broker.setcash(1000000.0)
 
