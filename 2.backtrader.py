@@ -97,11 +97,18 @@ class my_strategy1(bt.Strategy):
         self.log(f'策略收益：\n毛收益 {trade.pnl:.2f}, 净收益 {trade.pnlcomm:.2f}')
 
     def stop(self):
+
+        portvalue = self.broker.getvalue()
+        pnl = portvalue - 200000
+        # 打印结果
+        print(f'净收益: {round(pnl,2)}')
+        print(f'总资金: {round(portvalue,2)}')
+        print(f'总收益率: {(round(pnl,2) * 100)/round(200000,2)}%')
         self.log('(MA均线： %2d日) 期末总资金 %.2f' %
                  (self.params.period, self.broker.getvalue()), doprint=True)
 
 
-def get_data(code, start='2010-01-01', end='2022-02-31'):
+def get_data(code, start='2018-01-01', end='2022-02-31'):
     df = ts.get_k_data(code, autype='qfq', start=start, end=end)
     df.index = pd.to_datetime(df.date)
     df['openinterest'] = 0
@@ -109,45 +116,49 @@ def get_data(code, start='2010-01-01', end='2022-02-31'):
     return df
 
 
-dataframe = get_data('600519')
+def main():
+    dataframe = get_data('600519')
 
-# 回测期间
-start = datetime(2019, 3, 31)
-end = datetime(2021, 3, 31)
-# 加载数据
-data = bt.feeds.PandasData(dataname=dataframe, fromdate=start, todate=end)
+    # 回测期间
+    start = datetime(2019, 3, 31)
+    end = datetime(2021, 3, 31)
+    # 加载数据
+    data = bt.feeds.PandasData(dataname=dataframe, fromdate=start, todate=end)
 
-# 初始化cerebro回测系统设置
-cerebro = bt.Cerebro()
-# 将数据传入回测系统
-cerebro.adddata(data)
-# 将交易策略加载到回测系统中
-cerebro.optstrategy(my_strategy1, period=range(3, 6), printlog=True)
+    # 初始化cerebro回测系统设置
+    cerebro = bt.Cerebro()
+    # 将数据传入回测系统
+    cerebro.adddata(data)
+    # 将交易策略加载到回测系统中
+    cerebro.optstrategy(my_strategy1, period=range(3, 6), printlog=False)
 
-# cerebro.addstrategy(my_strategy1, printlog=True)
-# 设置初始资本为10,000
-startcash = 200000
-cerebro.broker.setcash(startcash)
-# 设置交易手续费为 万分之2
-cerebro.broker.setcommission(commission=0)
-cerebro.broker.set_coc(True)
+    # cerebro.addstrategy(my_strategy1, printlog=True)
+    # 设置初始资本为10,000
+    startcash = 200000
+    cerebro.broker.setcash(startcash)
+    # 设置交易手续费为 万分之2
+    cerebro.broker.setcommission(commission=0)
+    cerebro.broker.set_coc(True)
+
+    d1 = start.strftime('%Y%m%d')
+    d2 = end.strftime('%Y%m%d')
+    print(f'初始资金: {startcash}\n回测期间：{d1}:{d2}')
+    # 运行回测系统
+    cerebro.run()
+
+    # b = Bokeh(style='bar', plot_mode='single', scheme=Tradimo())
+    # cerebro.plot(b)
+
+    # cerebro.plot(style='candlestick')
+
+    # 获取回测结束后的总资金
+    # portvalue = cerebro.broker.getvalue()
+    # pnl = portvalue - startcash
+    # # 打印结果
+    # print(f'净收益: {round(pnl,2)}')
+    # print(f'总资金: {round(portvalue,2)}')
+    # print(f'总收益率: {(round(pnl,2) * 100)/round(startcash,2)}%')
 
 
-d1 = start.strftime('%Y%m%d')
-d2 = end.strftime('%Y%m%d')
-print(f'初始资金: {startcash}\n回测期间：{d1}:{d2}')
-# 运行回测系统
-cerebro.run()
-
-# b = Bokeh(style='bar', plot_mode='single', scheme=Tradimo())
-# cerebro.plot(b)
-
-# cerebro.plot(style='candlestick')
-
-# 获取回测结束后的总资金
-# portvalue = cerebro.broker.getvalue()
-# pnl = portvalue - startcash
-# # 打印结果
-# print(f'净收益: {round(pnl,2)}')
-# print(f'总资金: {round(portvalue,2)}')
-# print(f'总收益率: {(round(pnl,2) * 100)/round(startcash,2)}%')
+if __name__ == "__main__":
+    main()

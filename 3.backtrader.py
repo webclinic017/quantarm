@@ -55,7 +55,6 @@ def main(code, start, end='', startcash=10000, qts=500, com=0.001):
     # 创建主控制器
     cerebro = bt.Cerebro()
     # 导入策略参数寻优
-    cerebro.optstrategy(Mystrtegy, maperiod=range(3, 31))
     # 获取数据
     df = ts.get_k_data(code, autype='qfq', start=start)
     df.index = pd.to_datetime(df.date)
@@ -64,6 +63,7 @@ def main(code, start, end='', startcash=10000, qts=500, com=0.001):
     # 将数据加载至回测系统
     data = bt.feeds.PandasData(dataname=df)
     cerebro.adddata(data)
+    cerebro.optstrategy(Mystrtegy, maperiod=range(3, 6))
     # broker设置资金、手续费
     cerebro.broker.setcash(startcash)
     cerebro.broker.setcommission(commission=com)
@@ -71,7 +71,7 @@ def main(code, start, end='', startcash=10000, qts=500, com=0.001):
     cerebro.addsizer(bt.sizers.FixedSize, stake=qts)
     print('期初总资金: %.2f' %
           cerebro.broker.getvalue())
-    cerebro.run(maxcpus=1)
+    back = cerebro.run(maxcpus=1)
     print('期末总资金: %.2f' % cerebro.broker.getvalue())
 
 

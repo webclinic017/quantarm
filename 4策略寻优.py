@@ -24,7 +24,6 @@ class MaCrossStrategy(bt.Strategy):
         self.crossover = bt.ind.CrossOver(ma_fast, ma_slow)
 
     def next(self):
-        print(self.data0.lines.datetime.date)
         if not self.position:
             if self.crossover > 0:
                 self.buy()
